@@ -136,4 +136,4 @@ qji-peak-monitor --display-delay 2.5
 
 ## ライセンス
 
-（ここにライセンスを指定してください。例: MIT）
+MIT — [LICENSE](./LICENSE) を参照してください。

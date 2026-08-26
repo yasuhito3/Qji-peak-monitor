@@ -140,4 +140,4 @@ speakers, which is what `--display-delay` compensates for.
 
 ## License
 
-(Add your chosen license here — e.g. MIT)
+MIT — see [LICENSE](./LICENSE).
