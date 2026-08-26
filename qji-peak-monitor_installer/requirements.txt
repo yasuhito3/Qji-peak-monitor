@@ -1,4 +1,0 @@
-# python3-tk は pip では入りません。以下でインストールしてください:
-#   sudo apt install python3-tk
-matplotlib>=3.5
-numpy>=1.21
