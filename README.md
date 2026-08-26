@@ -1,55 +1,58 @@
 # Qji Peak Monitor
 
-Qji（奏在）の最終出力段をリアルタイムに可視化する、スタンドアロンのオーディオ
-ピークメーターです。`ffmpeg`の`astats`フィルターが書き出すログを読み取り、
-アナログVUメーター風のステレオ針メーター・水平レベルバー・信号履歴グラフを
-表示します。
+**English | [日本語](README.ja.md)**
+
+A standalone real-time audio peak meter for Qji（奏在）'s final output stage.
+It reads the log written by ffmpeg's `astats` filter and displays it as an
+analog-VU-style stereo needle meter, a horizontal peak level bar, and a
+signal history graph.
 
 ![screenshot placeholder](assets/icon_256.png)
 
-## 特徴
+## Features
 
-- ステレオ針メーター(L/R)＋水平ピークレベルメーター
-- 直近の信号推移を表示する SIGNAL PROFILE グラフ
-- しきい値超えを検知する PEAK HIT カウンター
-- DSP再生時など、実際に音が聞こえるタイミングと表示のズレを補正する
-  **ディスプレイディレイ機能**
-  - 起動時に`--display-delay`で秒数指定
-  - 起動後も矢印キーでリアルタイム微調整(← → で0.1秒刻み、↑ ↓ で0.5秒刻み)
-  - 数字キーで直接入力してEnterで確定も可能(例: `9` → `.` → `5` → Enter)
-  - `r`キーで起動時の値にリセット
-- 常に最前面表示、初期ウィンドウサイズのカスタマイズに対応
+- Stereo needle meter (L/R) + horizontal peak level meter
+- SIGNAL PROFILE graph showing recent signal history
+- PEAK HIT counter that detects threshold crossings
+- **Display Delay** feature to correct the gap between the meter and what
+  you actually hear (common with DSP playback, ALSA/loopback buffering, etc.)
+  - Set an initial offset in seconds at launch with `--display-delay`
+  - Fine-tune it live while the app is running:
+    - `←` / `→` : adjust by 0.1s
+    - `↑` / `↓` : adjust by 0.5s
+    - Type a number directly (e.g. `9` → `.` → `5`) and press `Enter` to confirm
+    - `r` : reset to the value given at launch
+- Always-on-top window, with a customizable initial window size
 
-## 動作環境
+## Requirements
 
-- Linux(Xubuntu / Ubuntu等、X11環境を想定)
+- Linux (developed and tested on Xubuntu / Ubuntu, X11 environment assumed)
 - Python 3
 - `python3-tk`
 - `matplotlib`
 - `numpy`
-- `ffmpeg`(Qji本体側で`astats`ログを出力していること)
+- `ffmpeg` (Qji itself must be writing an `astats` log)
 
-## インストール
+## Installation
 
-### 方法A: ダブルクリックでインストール(ターミナル操作不要)
+### Option A: Double-click installer (no terminal required)
 
-1. このリポジトリをZIPでダウンロード(または`git clone`)して展開する
-2. 展開したフォルダの中にある **「Qji Peak Monitor をインストール」**(`INSTALL.desktop`)を
-   ダブルクリックする
-3. 初回は「信頼して起動しますか?」といった確認ダイアログが出ることがあるので、
-   「起動する / Trust and Launch」を選ぶ
-4. ターミナルが開いてインストールが進み、完了すると「Enterキーを押すと閉じます…」と
-   表示されるので、Enterキーを押して閉じる
+1. Download this repository as a ZIP (or `git clone` it) and extract it
+2. Double-click **"Qji Peak Monitor をインストール" / "Install Qji Peak Monitor"**
+   (`INSTALL.desktop`) inside the extracted folder
+3. If a "Do you trust this application?" dialog appears (common on first run),
+   choose "Trust and Launch"
+4. A terminal window will open and run the installer. When it finishes, it
+   will show `Press Enter to close this window…` — press Enter to close it
 
-これでアプリケーションメニューとデスクトップに「Qji Peak Monitor」のアイコンが
-追加され、以後はそのアイコンをダブルクリックするだけで起動できます。
+This registers "Qji Peak Monitor" in your application menu and adds a
+desktop icon. From then on, just double-click that icon to launch the app.
 
-> ダブルクリックしても何も起こらない、または「開くアプリケーションの選択」と
-> 聞かれてしまう場合は、方法Bのターミナルからのインストールをお試しください。
-> (ファイルマネージャーの設定によっては、`.desktop`ファイルの実行が既定で
-> 許可されていないことがあります)
+> If double-clicking does nothing, or you're asked to "choose an application
+> to open this file", try Option B (terminal installation) instead. Some file
+> managers don't allow running `.desktop` files by default.
 
-### 方法B: ターミナルからインストール
+### Option B: Install from the terminal
 
 ```bash
 git clone https://github.com/<your-username>/qji-peak-monitor.git
@@ -57,81 +60,84 @@ cd qji-peak-monitor
 ./install.sh
 ```
 
-どちらの方法でも、`install.sh`は以下を行います:
+Either way, `install.sh` will:
 
-- 依存パッケージ(`python3-tk` / `matplotlib` / `numpy`)の有無を確認
-- 本体一式を `~/.local/share/qji-peak-monitor/` に配置
-- 起動用ランチャーを `~/.local/bin/qji-peak-monitor` に作成
-- アプリケーションメニューへの登録(`~/.local/share/applications/`)
-- デスクトップへのショートカット作成
+- Check for required dependencies (`python3-tk` / `matplotlib` / `numpy`)
+- Copy the app into `~/.local/share/qji-peak-monitor/`
+- Create a launcher at `~/.local/bin/qji-peak-monitor`
+- Register the app in your application menu
+  (`~/.local/share/applications/`)
+- Add a desktop shortcut
 
-いずれもユーザーのホームディレクトリ配下への配置のみのため、`sudo`は不要です
-(依存パッケージが不足している場合のみ、インストールコマンドの案内が表示されます)。
+Everything is installed under your home directory, so `sudo` is never
+required (if a dependency is missing, the installer will simply print the
+`apt install` command you need to run).
 
-### アンインストール
+### Uninstall
 
 ```bash
 ./uninstall.sh
 ```
 
-> **補足**: GitHubの「Download ZIP」やクラウドストレージ経由で受け取った場合など、
-> 実行属性(実行権限)が失われて`INSTALL.desktop`や`install.sh`をダブルクリックしても
-> 反応しないことがあります。その場合はターミナルで一度だけ以下を実行してください:
+> **Note**: If you received the files via GitHub's "Download ZIP" or a cloud
+> storage link, the executable permission bits may be lost, and
+> double-clicking `INSTALL.desktop` or `install.sh` may not do anything. In
+> that case, run this once from a terminal:
 > ```bash
 > chmod +x install.sh uninstall.sh INSTALL.desktop
 > ```
-> `git clone`で取得した場合は通常この操作は不要です。
+> This is normally not needed if you used `git clone`.
 
-## 使い方
+## Usage
 
-デスクトップアイコン、またはアプリケーションメニューから起動できます。
-
-ターミナルから起動する場合:
+Launch it from the desktop icon or application menu, or from a terminal:
 
 ```bash
-qji-peak-monitor [オプション]
+qji-peak-monitor [options]
 ```
 
-### 主なオプション
+### Main options
 
-| オプション | 説明 | デフォルト |
+| Option | Description | Default |
 |---|---|---|
-| `--log-glob` | 監視するastatsログファイルのglobパターン | (スクリプト内既定値) |
-| `--threshold` | ピークヒット判定のしきい値(dBFS) | (スクリプト内既定値) |
-| `--window` | SIGNAL PROFILEグラフの表示秒数 | 20.0 |
-| `--floor` | メーターの下限(dBFS) | (スクリプト内既定値) |
-| `--width-scale` | 初期ウィンドウ横幅の倍率 | 0.5 |
-| `--height-scale` | 初期ウィンドウ高さの倍率 | 1.0 |
-| `--no-topmost` | 常に最前面表示を無効化 | (最前面表示が既定) |
-| `--display-delay` | 表示を遅らせる秒数(実際に聞こえるタイミングに合わせる) | 0.0 |
-| `--refresh-ms` | 画面更新間隔(ミリ秒) | 100 |
+| `--log-glob` | Glob pattern for the astats log file to watch | (built-in default) |
+| `--threshold` | Peak-hit detection threshold (dBFS) | (built-in default) |
+| `--window` | Time span shown on the SIGNAL PROFILE graph (seconds) | 20.0 |
+| `--floor` | Meter floor (dBFS) | (built-in default) |
+| `--width-scale` | Initial window width scale factor | 0.5 |
+| `--height-scale` | Initial window height scale factor | 1.0 |
+| `--no-topmost` | Disable always-on-top | (on by default) |
+| `--display-delay` | Seconds to delay the display by, to match what you actually hear | 0.0 |
+| `--refresh-ms` | Screen refresh interval (ms) | 100 |
 
-例(DSP再生時、2.5秒遅らせて起動):
+Example (DSP playback, starting with a 2.5s delay):
 
 ```bash
 qji-peak-monitor --display-delay 2.5
 ```
 
-### キーボード操作(起動後)
+### Keyboard shortcuts (while running)
 
-| キー | 動作 |
+| Key | Action |
 |---|---|
-| `0`〜`9`、`.` | ディスプレイディレイの数値直接入力モードを開始 |
-| `Enter` | 入力した数値を確定 |
-| `Backspace` | 入力中の一文字を削除 |
-| `Esc` | 入力をキャンセル |
-| `←` / `→` | ディスプレイディレイを0.1秒刻みで調整 |
-| `↑` / `↓` | ディスプレイディレイを0.5秒刻みで調整 |
-| `r` | ディスプレイディレイを起動時の値にリセット |
+| `0`–`9`, `.` | Start direct numeric entry for the display delay |
+| `Enter` | Confirm the entered value |
+| `Backspace` | Delete the last character while typing |
+| `Esc` | Cancel entry |
+| `←` / `→` | Adjust display delay by 0.1s |
+| `↑` / `↓` | Adjust display delay by 0.5s |
+| `r` | Reset display delay to the value given at launch |
 
-## 仕組み
+## How it works
 
-`astats`フィルターはffmpegのフィルターチェーンの最終段(音声を次段へ渡す直前)
-で計測しているため、SIGNAL PROFILEグラフの右端は「ffmpegが処理を終えて次段
-(ALSA出力やDSPループバック)へ渡した瞬間」を表します。実際にスピーカーで
-聞こえるまでには、ALSAバッファやDSPのキューといった下流の遅延が加わるため、
-`--display-delay`でその分を補正して表示できます。
+The `astats` filter measures the signal at the very end of ffmpeg's filter
+chain, right before the audio is handed off to the next stage. This means
+the right edge of the SIGNAL PROFILE graph represents "the moment ffmpeg
+finished processing and passed the audio onward" (to ALSA output or a DSP
+loopback) — not the moment you actually hear it. Downstream buffering (ALSA
+buffers, a DSP queue, etc.) adds further delay before the sound reaches your
+speakers, which is what `--display-delay` compensates for.
 
-## ライセンス
+## License
 
-（ここにライセンスを指定してください。例: MIT）
+(Add your chosen license here — e.g. MIT)
