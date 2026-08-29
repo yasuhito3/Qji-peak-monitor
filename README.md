@@ -57,8 +57,13 @@ desktop icon. From then on, just double-click that icon to launch the app.
 ```bash
 git clone https://github.com/<your-username>/qji-peak-monitor.git
 cd qji-peak-monitor
-./install.sh
+bash install.sh
 ```
+
+> Running it as `bash install.sh` (rather than `./install.sh`) works even if
+> the executable permission bit was lost — for example after downloading via
+> GitHub's "Download ZIP", or after files were moved around through GitHub's
+> web UI. No `chmod` or `sudo` needed.
 
 Either way, `install.sh` will:
 
@@ -76,17 +81,13 @@ required (if a dependency is missing, the installer will simply print the
 ### Uninstall
 
 ```bash
-./uninstall.sh
+bash uninstall.sh
 ```
 
-> **Note**: If you received the files via GitHub's "Download ZIP" or a cloud
-> storage link, the executable permission bits may be lost, and
-> double-clicking `INSTALL.desktop` or `install.sh` may not do anything. In
-> that case, run this once from a terminal:
-> ```bash
-> chmod +x install.sh uninstall.sh INSTALL.desktop
-> ```
-> This is normally not needed if you used `git clone`.
+> If double-clicking `INSTALL.desktop` doesn't do anything, it's usually the
+> same permission-bit issue — try `bash install.sh` from a terminal instead.
+> (If you'd rather restore the executable bit directly:
+> `chmod +x install.sh uninstall.sh INSTALL.desktop`.)
 
 ## Usage
 

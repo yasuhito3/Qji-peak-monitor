@@ -56,8 +56,13 @@ Qji（奏在）の最終出力段をリアルタイムに可視化する、ス�
 ```bash
 git clone https://github.com/<your-username>/qji-peak-monitor.git
 cd qji-peak-monitor
-./install.sh
+bash install.sh
 ```
+
+> `./install.sh`ではなく`bash install.sh`のように実行すると、実行権限(実行属性)が
+> 失われていても(例: GitHubの「Download ZIP」でダウンロードした場合や、
+> GitHubのWeb画面上でファイルを移動した場合など)、そのまま動かせます。
+> `chmod`も`sudo`も不要です。
 
 どちらの方法でも、`install.sh`は以下を行います:
 
@@ -73,16 +78,15 @@ cd qji-peak-monitor
 ### アンインストール
 
 ```bash
-./uninstall.sh
+bash uninstall.sh
 ```
 
-> **補足**: GitHubの「Download ZIP」やクラウドストレージ経由で受け取った場合など、
-> 実行属性(実行権限)が失われて`INSTALL.desktop`や`install.sh`をダブルクリックしても
-> 反応しないことがあります。その場合はターミナルで一度だけ以下を実行してください:
-> ```bash
-> chmod +x install.sh uninstall.sh INSTALL.desktop
-> ```
-> `git clone`で取得した場合は通常この操作は不要です。
+> `INSTALL.desktop`をダブルクリックしても反応しない場合も、たいてい同じ
+> 実行権限の問題です。ターミナルから`bash install.sh`を試してみてください。
+> (実行権限そのものを直したい場合は
+> `chmod +x install.sh uninstall.sh INSTALL.desktop`でも直せます。
+> こちらはsudoは不要です — もしsudoを付けて実行された場合、作成される
+> ファイルの所有者がrootになってしまうことがあるのでご注意ください。)
 
 ## 使い方
 
