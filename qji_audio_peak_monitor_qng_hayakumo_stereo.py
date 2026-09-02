@@ -478,7 +478,8 @@ def main():
     delay_readout = ax_head.text(
         0.985, 0.06, "",
         transform=ax_head.transAxes,
-        color=GOLD, fontsize=8, ha="right", fontweight="bold"
+        color=GOLD, fontsize=8, ha="right", fontweight="bold",
+        animated=True
     )
 
     # Decorative sound curves
@@ -587,14 +588,15 @@ def main():
 
         needle, = ax.plot([0, 0], [-0.04, 0.62],
                           color="#171717", linewidth=2.0, zorder=8,
-                          solid_capstyle="round")
+                          solid_capstyle="round", animated=True)
         needle_tip, = ax.plot([0], [0.62], marker="o", markersize=3.0,
-                              color="#171717", zorder=9)
+                              color="#171717", zorder=9, animated=True)
         value_text = ax.text(
             0, -0.105, "--.-", color="#e9d7ad", fontsize=7.0,
             ha="center", va="center", zorder=11,
             bbox=dict(boxstyle="round,pad=0.18", facecolor="#111417",
-                      edgecolor="#30343a", linewidth=0.6, alpha=0.92)
+                      edgecolor="#30343a", linewidth=0.6, alpha=0.92),
+            animated=True
         )
         return needle, needle_tip, value_text
 
@@ -636,7 +638,8 @@ def main():
         transform=ax_now.transAxes,
         color=DIM, fontsize=36,
         fontweight="bold",
-        va="center", ha="left"
+        va="center", ha="left",
+        animated=True
     )
     ax_now.text(
         0.70, 0.57, "dBFS",
@@ -657,13 +660,13 @@ def main():
         [0.105], [0.327],
         s=32, color=DIM,
         transform=ax_now.transAxes,
-        zorder=4
+        zorder=4, animated=True
     )
     status_text = ax_now.text(
         0.16, 0.327, "WAITING",
         transform=ax_now.transAxes,
         color=DIM, fontsize=8.5,
-        va="center"
+        va="center", animated=True
     )
 
     ax_now.text(
@@ -712,7 +715,7 @@ def main():
             (x, 0.39), seg_width * 0.76, 0.28,
             boxstyle="round,pad=0.002,rounding_size=0.008",
             facecolor=color, edgecolor="none",
-            alpha=0.10
+            alpha=0.10, animated=True
         )
         ax_meter.add_patch(patch)
         meter_patches.append((patch, color, center_db))
@@ -753,7 +756,7 @@ def main():
     )
 
     meter_marker = ax_meter.axvline(
-        0.08, color=DIM, linewidth=1.2, alpha=0.9
+        0.08, color=DIM, linewidth=1.2, alpha=0.9, animated=True
     )
 
     # Stats panel
@@ -769,7 +772,7 @@ def main():
     hits_readout = ax_stats.text(
         0.92, 0.70, "0", color=RED,
         fontsize=20, ha="right",
-        transform=ax_stats.transAxes
+        transform=ax_stats.transAxes, animated=True
     )
 
     ax_stats.text(
@@ -780,7 +783,7 @@ def main():
     time_readout = ax_stats.text(
         0.92, 0.47, "00:00:00",
         color=TEXT, fontsize=10,
-        ha="right", transform=ax_stats.transAxes
+        ha="right", transform=ax_stats.transAxes, animated=True
     )
 
     ax_stats.text(
@@ -813,7 +816,7 @@ def main():
         0.10, 0.52, "--.-",
         transform=ax_hold.transAxes,
         color=GOLD, fontsize=22,
-        va="center"
+        va="center", animated=True
     )
     ax_hold.text(
         0.72, 0.52, "dBFS",
@@ -833,26 +836,46 @@ def main():
     panel_title(ax_profile, "SIGNAL PROFILE  •  PEAK HISTORY")
 
     profile_line, = ax_profile.plot(
-        [], [], color=BLUE, linewidth=1.0
+        [], [], color=BLUE, linewidth=1.0, animated=True
     )
     profile_glow, = ax_profile.plot(
-        [], [], color=CYAN, linewidth=4.0, alpha=0.06
+        [], [], color=CYAN, linewidth=4.0, alpha=0.06, animated=True
     )
-    profile_fill = {"poly": ax_profile.fill_between(
-        [], [], [], color=BLUE, alpha=0.06
-    )}
+    # 以前は毎フレーム fill_between() で PolyCollection を作り直して
+    # いたが(remove()+再生成はオブジェクト生成コストが高くCPU負荷の
+    # 主因だった)、常設の Polygon を1つだけ作っておき、頂点座標
+    # (set_xy)だけを毎フレーム更新する方式に変更。見た目は同じまま
+    # 描画コストを大幅に削減できる。
+    from matplotlib.patches import Polygon as _Polygon
+    profile_fill_patch = _Polygon(
+        [[0, FLOOR_DB], [0, FLOOR_DB]], closed=True,
+        facecolor=BLUE, edgecolor="none", alpha=0.055, animated=True
+    )
+    ax_profile.add_patch(profile_fill_patch)
+
+    def _update_profile_fill(relx, ys):
+        """profile_fill_patch の頂点を更新する(新規オブジェクトは作らない)。"""
+        if len(relx) == 0:
+            profile_fill_patch.set_xy([[0, FLOOR_DB], [0, FLOOR_DB]])
+            return
+        verts = np.empty((len(relx) + 2, 2))
+        verts[0] = (relx[0], FLOOR_DB)
+        verts[1:-1, 0] = relx
+        verts[1:-1, 1] = ys
+        verts[-1] = (relx[-1], FLOOR_DB)
+        profile_fill_patch.set_xy(verts)
 
     # "NOW" マーカー: display-delay分だけ右端(=ffmpegが処理を終えて
     # 次段に渡した瞬間)から左に戻った位置が、実際にスピーカーで
     # 聞こえている音におおよそ対応する。
     now_marker = ax_profile.axvline(
         WINDOW_SEC, color=GOLD, linewidth=1.1,
-        alpha=0.85, linestyle=(0, (3, 2)), zorder=5
+        alpha=0.85, linestyle=(0, (3, 2)), zorder=5, animated=True
     )
     now_marker_label = ax_profile.text(
         WINDOW_SEC, CEIL_DB, "",
         color=GOLD, fontsize=6.3, fontweight="bold",
-        ha="right", va="bottom", zorder=5
+        ha="right", va="bottom", zorder=5, animated=True
     )
     now_marker.set_visible(False)
     now_marker_label.set_visible(False)
@@ -898,7 +921,7 @@ def main():
             0.19, y - 0.10, value,
             transform=ax_info.transAxes,
             color=TEXT, fontsize=7.2,
-            va="center"
+            va="center", animated=True
         )
         info_values.append(tv)
 
@@ -931,6 +954,17 @@ def main():
     # ─────────────────────────────────────────
     # Update
     # ─────────────────────────────────────────
+    # blit=True では、update() は「毎フレーム同じアーティストの集合」を
+    # 返す必要がある(表示/非表示はset_visible()で切り替え、集合自体は
+    # 固定)。ここで一度だけ定義しておく。
+    _ANIM_ARTISTS = (
+        needle_l, tip_l, value_l, needle_r, tip_r, value_r,
+        now_readout, hold_readout, status_text, status_dot,
+        meter_marker, profile_line, profile_glow, profile_fill_patch,
+        now_marker, now_marker_label,
+        hits_readout, time_readout, delay_readout, info_values[0],
+    ) + tuple(patch for patch, _color, _center in meter_patches)
+
     def update(_frame):
         mon.poll()
 
@@ -964,16 +998,11 @@ def main():
 
             profile_line.set_data([], [])
             profile_glow.set_data([], [])
-
-            if profile_fill["poly"] is not None:
-                profile_fill["poly"].remove()
-                profile_fill["poly"] = ax_profile.fill_between(
-                    [], [], [], color=BLUE, alpha=0.06
-                )
+            _update_profile_fill(np.array([]), np.array([]))
 
             hits_readout.set_text("0")
             time_readout.set_text("00:00:00")
-            return
+            return _ANIM_ARTISTS
 
         xs = np.asarray(mon.times)
         ys = np.asarray(mon.values)
@@ -1022,14 +1051,11 @@ def main():
         relx = xs - max(0, t_last - WINDOW_SEC)
         profile_line.set_data(relx, ys)
         profile_glow.set_data(relx, ys)
-        ax_profile.set_xlim(0, max(WINDOW_SEC, relx[-1] + 0.1))
+        # blit=True では軸の表示範囲(xlim)を毎フレーム変えると、
+        # 背景としてキャッシュ済みのグリッド線とズレてしまうため、
+        # 起動時に設定した固定 xlim (0, WINDOW_SEC) のまま変更しない。
 
-        if profile_fill["poly"] is not None:
-            profile_fill["poly"].remove()
-        profile_fill["poly"] = ax_profile.fill_between(
-            relx, ys, FLOOR_DB,
-            color=BLUE, alpha=0.055
-        )
+        _update_profile_fill(relx, ys)
 
         # "NOW" マーカー: 実際に耳に聞こえているであろう位置。
         # display-delay が 0 の場合は「右端 = 今」なので表示しない。
@@ -1063,18 +1089,19 @@ def main():
             base = os.path.basename(mon.current_log_path)
             info_values[0].set_text(base[:25])
 
-        return (
-            needle_l, needle_r, tip_l, tip_r,
-            now_readout, hold_readout,
-            status_text, status_dot,
-            meter_marker, profile_line, profile_glow,
-            hits_readout, time_readout
-        )
+        return _ANIM_ARTISTS
+
+    # delayの数値直接入力用の状態。数字キーを押すと入力モードに入り、
+    # Enterで確定、Escでキャンセル、Backspaceで一文字削除できる。
+    # ※ blit=True の場合、FuncAnimation はコンストラクタの中で即座に
+    #   1回目の update() を呼ぶため、update() が参照する input_state は
+    #   必ず FuncAnimation の生成より前に定義しておく必要がある。
+    input_state = {"active": False, "buffer": ""}
 
     ani = animation.FuncAnimation(
         fig, update,
         interval=REFRESH_MS,
-        blit=False,
+        blit=True,
         cache_frame_data=False
     )
 
@@ -1086,10 +1113,6 @@ def main():
         "keymap.pan", "keymap.zoom",
     ):
         plt.rcParams[_keymap_name] = []
-
-    # delayの数値直接入力用の状態。数字キーを押すと入力モードに入り、
-    # Enterで確定、Escでキャンセル、Backspaceで一文字削除できる。
-    input_state = {"active": False, "buffer": ""}
 
     def on_key(event):
         key = event.key
