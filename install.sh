@@ -45,19 +45,56 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 MISSING_PY_MODULES=()
+NUMPY_CONFLICT_DETECTED=0
 for mod in tkinter matplotlib numpy; do
-    if ! python3 -c "import ${mod}" >/dev/null 2>&1; then
+    # エラーメッセージ本文も見たいので、標準エラー出力を捕捉しておく。
+    IMPORT_ERR=""
+    if ! IMPORT_ERR="$(python3 -c "import ${mod}" 2>&1 1>/dev/null)"; then
         MISSING_PY_MODULES+=("${mod}")
+        # 「pipでユーザー領域に入った新しいNumPyと、aptのmatplotlib(NumPy 1.x
+        # 向けビルド)が衝突している」という、よくあるパターンのエラー文言に
+        # 一致するかどうかを確認する。
+        if echo "${IMPORT_ERR}" | grep -qi \
+            "numpy\.core\.multiarray failed to import\|compiled using NumPy 1\.x"; then
+            NUMPY_CONFLICT_DETECTED=1
+        fi
     fi
 done
 
 if [ "${#MISSING_PY_MODULES[@]}" -ne 0 ]; then
     echo "  ✗ 不足しているPythonモジュールがあります: ${MISSING_PY_MODULES[*]}"
     echo
+
+    if [ "${NUMPY_CONFLICT_DETECTED}" -eq 1 ]; then
+        echo "  ⚠ NumPyのバージョン競合が検出されました。"
+        echo "    以前 pip 等でユーザー領域(~/.local)に新しいバージョンのNumPyが"
+        echo "    インストールされており、それが apt 由来の matplotlib(古い"
+        echo "    NumPy 1.x向けにビルドされたもの)と衝突している可能性が高いです。"
+        echo
+        echo "    以下を試してから、もう一度このインストーラーを実行してください:"
+        echo
+        echo "      python3 -m pip uninstall --break-system-packages numpy"
+        echo "      sudo apt install python3-numpy"
+        echo
+        echo "    (--break-system-packages は、システム保護機構を一時的に"
+        echo "     解除するオプションです。今回は『後から個人的に追加された"
+        echo "     重複パッケージを取り除く』操作なので安全です)"
+        echo
+    fi
+
     echo "  以下のコマンドでインストールしてから、再度このスクリプトを実行してください:"
     echo
     echo "    sudo apt update"
     echo "    sudo apt install python3-tk python3-matplotlib python3-numpy"
+    echo
+    echo "  ※ 上記を実行済みでも同じメッセージが出る場合、Anaconda/pyenv等の"
+    echo "    別のPython環境が優先されている可能性があります。以下の情報を"
+    echo "    参考に確認してください(python3 の場所が /usr/bin/python3 以外"
+    echo "    になっている場合は、その別のPython環境が原因です):"
+    echo
+    echo "    which python3 → $(command -v python3)"
+    echo "    python3 --version → $(python3 --version 2>&1)"
+    echo "    python3 の実体 → $(python3 -c 'import sys; print(sys.executable)' 2>&1)"
     echo
     exit 1
 fi
