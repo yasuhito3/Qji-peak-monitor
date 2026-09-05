@@ -102,6 +102,19 @@ available, asks for confirmation, then downloads and reinstalls it
 automatically (equivalent to re-running `install.sh` with the latest files).
 If you're already on the latest version, it simply tells you so and exits.
 
+## Language / 言語について
+
+The installer, uninstaller, and updater print every message in both English
+and Japanese, so they work the same way regardless of your system language.
+Application-menu entries (the app icon and the "Check for Updates" icon)
+switch automatically between English and Japanese based on your desktop's
+language setting.
+
+インストーラー・アンインストーラー・アップデーターは、すべてのメッセージを
+英語・日本語の両方で表示するため、使用言語の設定に関わらず同じ内容が読めます。
+アプリケーションメニューの項目(アプリ本体、および「アップデート確認」)は、
+お使いのデスクトップの言語設定に応じて自動的に英語/日本語が切り替わります。
+
 ## Usage
 
 Launch it from the desktop icon or application menu, or from a terminal:

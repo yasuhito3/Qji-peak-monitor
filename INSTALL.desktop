@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
 Version=1.0
-Name=Qji Peak Monitor をインストール
-Name[en]=Install Qji Peak Monitor
-Comment=ダブルクリックしてインストールします(ターミナルが開いて進行状況が表示されます)
-Comment[en]=Double-click to install (opens a terminal showing progress)
+Name=Install Qji Peak Monitor
+Name[ja]=Qji Peak Monitor をインストール
+Comment=Double-click to install (opens a terminal showing progress)
+Comment[ja]=ダブルクリックしてインストールします(ターミナルが開いて進行状況が表示されます)
 Exec=bash install.sh
 Icon=system-software-install
 Terminal=true
