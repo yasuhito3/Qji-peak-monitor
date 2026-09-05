@@ -17,8 +17,10 @@ APP_NAME="qji-peak-monitor"
 INSTALL_DIR="${HOME}/.local/share/${APP_NAME}"
 BIN_DIR="${HOME}/.local/bin"
 LAUNCHER="${BIN_DIR}/${APP_NAME}"
+UPDATE_LAUNCHER="${BIN_DIR}/${APP_NAME}-update"
 DESKTOP_FILE_DIR="${HOME}/.local/share/applications"
 DESKTOP_ENTRY="${DESKTOP_FILE_DIR}/${APP_NAME}.desktop"
+UPDATE_DESKTOP_ENTRY="${DESKTOP_FILE_DIR}/${APP_NAME}-update.desktop"
 
 echo "=============================================="
 echo " Qji Peak Monitor アンインストーラー"
@@ -42,9 +44,19 @@ if [ -f "${LAUNCHER}" ]; then
     echo "  ✓ ${LAUNCHER} を削除しました"
 fi
 
+if [ -f "${UPDATE_LAUNCHER}" ]; then
+    rm -f "${UPDATE_LAUNCHER}"
+    echo "  ✓ ${UPDATE_LAUNCHER} を削除しました"
+fi
+
 if [ -f "${DESKTOP_ENTRY}" ]; then
     rm -f "${DESKTOP_ENTRY}"
     echo "  ✓ ${DESKTOP_ENTRY} を削除しました"
+fi
+
+if [ -f "${UPDATE_DESKTOP_ENTRY}" ]; then
+    rm -f "${UPDATE_DESKTOP_ENTRY}"
+    echo "  ✓ ${UPDATE_DESKTOP_ENTRY} を削除しました"
 fi
 
 # デスクトップ上のショートカットも探して削除

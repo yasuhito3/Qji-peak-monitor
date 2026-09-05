@@ -15,6 +15,11 @@ set -euo pipefail
 # 失敗してもメッセージを読めないまま消えてしまう。正常終了・異常終了の
 # どちらでも、必ず Enter キー待ちで一時停止してから閉じるようにする。
 _pause_before_exit() {
+    # update.sh から呼び出された場合は、update.sh 側で最後に一時停止するため
+    # ここでは重ねて止めない。
+    if [ "${QJI_SKIP_PAUSE:-0}" = "1" ]; then
+        return
+    fi
     echo
     read -r -p "Enterキーを押すとこのウィンドウを閉じます… " _dummy || true
 }
@@ -28,7 +33,9 @@ INSTALL_DIR="${HOME}/.local/share/${APP_NAME}"
 BIN_DIR="${HOME}/.local/bin"
 DESKTOP_FILE_DIR="${HOME}/.local/share/applications"
 LAUNCHER="${BIN_DIR}/${APP_NAME}"
+UPDATE_LAUNCHER="${BIN_DIR}/${APP_NAME}-update"
 DESKTOP_ENTRY="${DESKTOP_FILE_DIR}/${APP_NAME}.desktop"
+UPDATE_DESKTOP_ENTRY="${DESKTOP_FILE_DIR}/${APP_NAME}-update.desktop"
 MAIN_SCRIPT="qji_audio_peak_monitor_qng_hayakumo_stereo.py"
 
 echo "=============================================="
@@ -109,6 +116,18 @@ if [ -d "${SCRIPT_DIR}/assets" ]; then
     cp -f "${SCRIPT_DIR}"/assets/*.png "${INSTALL_DIR}/assets/" 2>/dev/null || true
 fi
 chmod +x "${INSTALL_DIR}/${MAIN_SCRIPT}"
+
+# バージョン情報とアップデートスクリプトも一緒に配置しておく
+# (update.sh が「今インストールされているバージョン」を知るために使う)
+if [ -f "${SCRIPT_DIR}/VERSION" ]; then
+    cp -f "${SCRIPT_DIR}/VERSION" "${INSTALL_DIR}/VERSION"
+else
+    echo "unknown" > "${INSTALL_DIR}/VERSION"
+fi
+if [ -f "${SCRIPT_DIR}/update.sh" ]; then
+    cp -f "${SCRIPT_DIR}/update.sh" "${INSTALL_DIR}/update.sh"
+    chmod +x "${INSTALL_DIR}/update.sh"
+fi
 echo "  ✓ 配置完了"
 echo
 
@@ -121,6 +140,15 @@ exec python3 "${INSTALL_DIR}/${MAIN_SCRIPT}" "\$@"
 EOF
 chmod +x "${LAUNCHER}"
 echo "  ✓ 作成完了"
+
+if [ -f "${INSTALL_DIR}/update.sh" ]; then
+    cat > "${UPDATE_LAUNCHER}" << EOF
+#!/usr/bin/env bash
+exec bash "${INSTALL_DIR}/update.sh"
+EOF
+    chmod +x "${UPDATE_LAUNCHER}"
+    echo "  ✓ アップデート確認用ランチャーも作成しました (${UPDATE_LAUNCHER})"
+fi
 
 if [[ ":${PATH}:" != *":${BIN_DIR}:"* ]]; then
     echo "  ※ ${BIN_DIR} が PATH に含まれていません。"
@@ -153,6 +181,29 @@ echo "  ✓ アプリケーションメニューに登録しました"
 # gio があればメニュー側にも "信頼済み" として認識させる(無くても問題ない)
 if command -v gio >/dev/null 2>&1; then
     gio set "${DESKTOP_ENTRY}" "metadata::trusted" true >/dev/null 2>&1 || true
+fi
+
+# アップデート確認用のメニューエントリも作成する
+if [ -f "${UPDATE_LAUNCHER}" ]; then
+    cat > "${UPDATE_DESKTOP_ENTRY}" << EOF
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=${APP_DISPLAY_NAME} アップデート確認
+Name[en]=${APP_DISPLAY_NAME} - Check for Updates
+Comment=GitHub上の最新バージョンを確認し、必要ならアップデートします
+Comment[en]=Check GitHub for a newer version and update if available
+Exec=${UPDATE_LAUNCHER}
+Icon=system-software-update
+Terminal=true
+Categories=Utility;
+StartupNotify=true
+EOF
+    chmod +x "${UPDATE_DESKTOP_ENTRY}"
+    if command -v gio >/dev/null 2>&1; then
+        gio set "${UPDATE_DESKTOP_ENTRY}" "metadata::trusted" true >/dev/null 2>&1 || true
+    fi
+    echo "  ✓ 「アップデート確認」もアプリケーションメニューに登録しました"
 fi
 echo
 
@@ -196,4 +247,10 @@ echo
 echo "例:"
 echo "  ${LAUNCHER} --display-delay 2.5"
 echo
+if [ -f "${UPDATE_LAUNCHER}" ]; then
+    echo "アップデートの確認:"
+    echo "  ・アプリケーションメニューの「${APP_DISPLAY_NAME} アップデート確認」から"
+    echo "  ・またはターミナルから: ${UPDATE_LAUNCHER}"
+    echo
+fi
 echo "アンインストールする場合は uninstall.sh を実行してください。"

@@ -89,6 +89,19 @@ bash uninstall.sh
 > (If you'd rather restore the executable bit directly:
 > `chmod +x install.sh uninstall.sh INSTALL.desktop`.)
 
+## Updating
+
+Once installed, you don't need to re-download the ZIP or re-clone the repo
+each time. An "Update" entry is added to your application menu automatically:
+
+- **Application menu**: "Qji Peak Monitor - Check for Updates"
+- **Terminal**: `qji-peak-monitor-update` (or `~/.local/bin/qji-peak-monitor-update`)
+
+It checks the `VERSION` file in this repository, and if a newer version is
+available, asks for confirmation, then downloads and reinstalls it
+automatically (equivalent to re-running `install.sh` with the latest files).
+If you're already on the latest version, it simply tells you so and exits.
+
 ## Usage
 
 Launch it from the desktop icon or application menu, or from a terminal:
