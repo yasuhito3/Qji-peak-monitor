@@ -64,7 +64,7 @@ fi
 
 MISSING_PY_MODULES=()
 NUMPY_CONFLICT_DETECTED=0
-for mod in tkinter matplotlib numpy; do
+for mod in tkinter numpy matplotlib.pyplot; do
     # Capture the error text too, since we want to inspect it below.
     # エラーメッセージ本文も見たいので、標準エラー出力を捕捉しておく。
     IMPORT_ERR=""
@@ -89,35 +89,61 @@ if [ "${#MISSING_PY_MODULES[@]}" -ne 0 ]; then
 
     if [ "${NUMPY_CONFLICT_DETECTED}" -eq 1 ]; then
         echo "  ⚠ A NumPy version conflict was detected."
-        echo "    A newer NumPy was likely installed into your user site"
+        echo "    A newer NumPy (2.x) was likely installed into your user site"
         echo "    (~/.local) via pip at some point, and it conflicts with"
         echo "    apt's matplotlib (built against the older NumPy 1.x)."
         echo
-        echo "    Try this, then run this installer again:"
+        echo "    Pick ONE of the following, then run this installer again:"
+        echo
+        echo "    [Option 1 - recommended] Upgrade matplotlib to a NumPy 2-ready build"
+        echo "      (matplotlib 3.9 or newer; installed under ~/.local, no sudo):"
+        echo
+        echo "      python3 -m pip install -U matplotlib --break-system-packages"
+        echo
+        echo "    [Option 2] Go back to the system's NumPy:"
         echo
         echo "      python3 -m pip uninstall --break-system-packages numpy"
         echo "      sudo apt install python3-numpy"
         echo
         echo "    (--break-system-packages temporarily bypasses the system"
-        echo "     package protection. This is safe here since it only"
-        echo "     removes a duplicate package that was added later.)"
+        echo "     package protection. It only affects your ~/.local packages"
+        echo "     here, so it is safe. Note that Option 2 removes NumPy 2.x,"
+        echo "     which other tools of yours may rely on.)"
         echo
         echo "  ---"
         echo
         echo "  ⚠ NumPyのバージョン競合が検出されました。"
-        echo "    以前 pip 等でユーザー領域(~/.local)に新しいバージョンのNumPyが"
-        echo "    インストールされており、それが apt 由来の matplotlib(古い"
-        echo "    NumPy 1.x向けにビルドされたもの)と衝突している可能性が高いです。"
+        echo "    以前 pip 等でユーザー領域(~/.local)に新しいバージョン(2.x)の"
+        echo "    NumPyがインストールされており、それが apt 由来の matplotlib"
+        echo "    (古いNumPy 1.x向けにビルドされたもの)と衝突している可能性が"
+        echo "    高いです。"
         echo
-        echo "    以下を試してから、もう一度このインストーラーを実行してください:"
+        echo "    以下のどちらか一方を実行してから、もう一度このインストーラーを"
+        echo "    実行してください:"
+        echo
+        echo "    【方法1・推奨】matplotlib を NumPy 2 対応版に上げる"
+        echo "      (matplotlib 3.9 以降。~/.local に入るので sudo 不要):"
+        echo
+        echo "      python3 -m pip install -U matplotlib --break-system-packages"
+        echo
+        echo "    【方法2】システム標準のNumPyに戻す:"
         echo
         echo "      python3 -m pip uninstall --break-system-packages numpy"
         echo "      sudo apt install python3-numpy"
         echo
         echo "    (--break-system-packages は、システム保護機構を一時的に"
-        echo "     解除するオプションです。今回は『後から個人的に追加された"
-        echo "     重複パッケージを取り除く』操作なので安全です)"
+        echo "     解除するオプションです。今回は ~/.local 側のパッケージだけを"
+        echo "     操作するため安全です。ただし方法2はNumPy 2.xを削除するため、"
+        echo "     NumPy 2.xを必要とする他のツールがある場合はご注意ください)"
         echo
+        if [[ " ${MISSING_PY_MODULES[*]} " == *" tkinter "* ]]; then
+            echo "  Also, tkinter is missing. Install it with:"
+            echo "    sudo apt install python3-tk"
+            echo "  あわせて tkinter も不足しています。以下でインストールしてください:"
+            echo "    sudo apt install python3-tk"
+            echo
+        fi
+        exit 1
     fi
 
     echo "  Install the following, then run this script again:"

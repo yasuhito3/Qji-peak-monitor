@@ -165,6 +165,34 @@ qji-peak-monitor --display-delay 2.5
 聞こえるまでには、ALSAバッファやDSPのキューといった下流の遅延が加わるため、
 `--display-delay`でその分を補正して表示できます。
 
+## トラブルシューティング
+
+### `A module that was compiled using NumPy 1.x cannot be run in NumPy 2.x` と表示される
+
+アプリやインストーラーがこのメッセージで止まる場合、`pip`で`~/.local`に新しい
+NumPy(2.x)が入っている一方で、`matplotlib`が`apt`由来(古いNumPy 1.x向けに
+ビルドされたもの)になっていることが原因です。次のコマンドで確認できます:
+
+```bash
+python3 -c "import numpy; print(numpy.__version__, numpy.__file__)"
+python3 -c "import matplotlib; print(matplotlib.__version__, matplotlib.__file__)"
+```
+
+`matplotlib`が`/usr/lib/python3/dist-packages/`から読み込まれていて、バージョンが
+3.9未満の場合は、**どちらか一方**で解決できます:
+
+```bash
+# 方法1(推奨): matplotlibをNumPy 2対応版に上げる(sudo不要)
+python3 -m pip install -U matplotlib --break-system-packages
+
+# 方法2: システム標準のNumPyに戻す
+python3 -m pip uninstall --break-system-packages numpy
+sudo apt install python3-numpy
+```
+
+方法2はNumPy 2.xを削除するため、NumPy 2.xを必要とする他のツールがある場合は
+避けてください。アプリ本体の修正は不要で、環境側の問題です。
+
 ## ライセンス
 
 MIT — [LICENSE](./LICENSE) を参照してください。

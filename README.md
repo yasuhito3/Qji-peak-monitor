@@ -165,6 +165,35 @@ loopback) — not the moment you actually hear it. Downstream buffering (ALSA
 buffers, a DSP queue, etc.) adds further delay before the sound reaches your
 speakers, which is what `--display-delay` compensates for.
 
+## Troubleshooting
+
+### `A module that was compiled using NumPy 1.x cannot be run in NumPy 2.x`
+
+If the app (or the installer) fails with this message, a newer NumPy (2.x)
+was installed through `pip` into `~/.local`, while `matplotlib` comes from
+`apt` and was built against the older NumPy 1.x. You can check which one is
+at fault with:
+
+```bash
+python3 -c "import numpy; print(numpy.__version__, numpy.__file__)"
+python3 -c "import matplotlib; print(matplotlib.__version__, matplotlib.__file__)"
+```
+
+If `matplotlib` is loaded from `/usr/lib/python3/dist-packages/` and its
+version is older than 3.9, fix it with **either** of the following:
+
+```bash
+# Option 1 (recommended): upgrade matplotlib to a NumPy 2-ready build (no sudo)
+python3 -m pip install -U matplotlib --break-system-packages
+
+# Option 2: go back to the system NumPy
+python3 -m pip uninstall --break-system-packages numpy
+sudo apt install python3-numpy
+```
+
+Option 2 removes NumPy 2.x, so avoid it if other tools of yours need it.
+The app itself needs no changes; this is purely an environment issue.
+
 ## License
 
 MIT — see [LICENSE](./LICENSE).
